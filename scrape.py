@@ -3,6 +3,20 @@ from bs4 import BeautifulSoup
 import pprint
 
 
+# returns a list of 2 lists: the 1st list contains storylinks, the 2nd list contains subtexts
+def get_hn_data(num_pages):
+    data = [[], []]
+    for i in range(num_pages):
+        link = 'https://news.ycombinator.com/news'
+        if i > 0:
+            link = link + f'?p={i+1}'
+        res = requests.get(link)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        data[0].extend(soup.select('.storylink'))
+        data[1].extend(soup.select('.subtext'))
+    return data
+
+
 def sort_stories_by_votes(hnlist):
     return sorted(hnlist, key=lambda k: k['votes'], reverse=True )
 
@@ -20,14 +34,5 @@ def create_custom_hn(links, subtexts):
     return sort_stories_by_votes(hn)
 
 
-res = requests.get('https://news.ycombinator.com/news')
-res2 = requests.get('https://news.ycombinator.com/news?p=2')
-soup = BeautifulSoup(res.text, 'html.parser')
-soup2 = BeautifulSoup(res2.text, 'html.parser')
-links = soup.select('.storylink')
-links.extend(soup2.select('.storylink'))
-subtexts = soup.select('.subtext')
-subtexts.extend(soup2.select('.subtext'))
-
-
-pprint.pprint(create_custom_hn(links, subtexts))
+hn_data = get_hn_data(2)
+pprint.pprint(create_custom_hn(hn_data[0], hn_data[1]))
